@@ -10,11 +10,26 @@ const char* mqttPassword = "mGjfSKZV51cd";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+void callback(char* topic, byte* payload, unsigned int length) {
+ 
+  Serial.print("Message arrived in topic: ");
+  Serial.println(topic);
+ 
+  Serial.print("Message:");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+ 
+  Serial.println();
+  Serial.println("-----------------------");
+ 
+}
+
 void setup()
 {
   Serial.begin(9600);
   Serial.println();
-  WiFi.begin("Movistar_7DB53C", "24FF22732F");
+  WiFi.begin("BORO", "123811976");
     Serial.print("Connecting");
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -41,6 +56,7 @@ void setup()
     }
     client.publish("esp/test", "Hello from ESP8266");
     client.subscribe("esp/test");
+    client.setCallback(callback);
 }
   // Serial.println("Status\tHumidity (%)\tTemperature (C)\t(F)");
   dht.setup(D15);
@@ -48,14 +64,24 @@ void setup()
 
 void loop()
 {
-  // client.loop(); 
+  client.loop(); 
   delay(dht.getMinimumSamplingPeriod());
 
   float humidity = dht.getHumidity();
   float temperature = dht.getTemperature();
-  Serial.println(temperature);
+  // Serial.println(temperature);
   char result[8];
+  char resultH[8];
   dtostrf(temperature, 6, 2, result);
+  dtostrf(humidity, 6, 2, resultH);
+  String str(result);
+  String str2(resultH);
+  String TH = str+str2;
+  Serial.println(TH);
+  char pload[50];
+  TH.toCharArray(pload,50);
+  // String humidityTemperature = result + '&' +resultH;
+  //Serial.print(humidityTemperature)
   //Serial.print(dht.getStatusString());
   /*Serial.print("\t");
   Serial.print(humidity, 1);
@@ -63,21 +89,7 @@ void loop()
   Serial.print(temperature, 1);
   Serial.print("\t\t");
   Serial.println(dht.toFahrenheit(temperature), 1); */
-  Serial.println(result);
-  client.publish("esp/test", result);
-}
-
-void callback(char* topic, byte* payload, unsigned int length) {
- 
-  Serial.print("Message arrived in topic: ");
-  Serial.println(topic);
- 
-  Serial.print("Message:");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
- 
-  Serial.println();
-  Serial.println("-----------------------");
- 
+  //Serial.println(result);
+  // Serial.println(resultH);
+  client.publish("esp/test", pload);
 }
